@@ -36,6 +36,7 @@ export const SocialsButtons = ({
       }
     );
   };
+  
   const handleSignInWithGoggle = async () => {
     setError(null);
     setIsLoading(true);
