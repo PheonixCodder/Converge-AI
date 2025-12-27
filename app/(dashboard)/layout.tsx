@@ -23,11 +23,8 @@ const DashboardLayout = async ({
       <div className="flex h-screen w-full">
         <DashboardSidebar />
         <div className="flex bg-radial from-sidebar-accent to-sidebar items-center">
-<Separator
-  orientation="vertical"
-  className="h-0!"
-/>
-</div>
+          <Separator orientation="vertical" className="h-0!" />
+          </div>
         <main className="flex flex-1 flex-col bg-muted bg-radial from-sidebar-accent to-sidebar py-6 px-6">
           <DashboardNavbar />
           <div className="flex-1 overflow-auto p-4 bg-white rounded-2xl mt-4">

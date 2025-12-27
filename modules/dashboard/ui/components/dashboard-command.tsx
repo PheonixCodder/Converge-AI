@@ -12,7 +12,7 @@ type DashboardCommandProps = {
 
 export const DashboardCommand = ({ open, setOpen }: DashboardCommandProps) => (
   <CommandDialog open={open} onOpenChange={setOpen}>
-    <CommandInput placeholder="Find a meeting or agent..." />
+    <CommandInput placeholder="Find a Meeting or Agent" />
     <CommandList>
       <CommandItem>Test</CommandItem>
     </CommandList>

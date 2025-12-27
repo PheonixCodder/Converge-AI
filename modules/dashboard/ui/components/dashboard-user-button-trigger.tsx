@@ -16,7 +16,9 @@ type DashboardUserButtonTriggerProps = {
 
 export const DashboardUserButtonTrigger = ({
   user: { name, email, image },
-}: DashboardUserButtonTriggerProps) => (
+}: DashboardUserButtonTriggerProps) => {
+  console.log(image)
+  return(
   <>
     {image ? (
       <Avatar className="size-9">
@@ -30,5 +32,5 @@ export const DashboardUserButtonTrigger = ({
       <p>{email}</p>
     </div>
     <ChevronDownIcon className="size-4 shrink-0" />
-  </>
-);
+  </>)
+};
