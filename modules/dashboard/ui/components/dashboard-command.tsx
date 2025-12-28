@@ -2,7 +2,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandDialog,
+  CommandResponsiveDialog,
 } from "@/components/ui/command";
 
 type DashboardCommandProps = {
@@ -11,10 +11,10 @@ type DashboardCommandProps = {
 };
 
 export const DashboardCommand = ({ open, setOpen }: DashboardCommandProps) => (
-  <CommandDialog open={open} onOpenChange={setOpen}>
+  <CommandResponsiveDialog open={open} onOpenChange={setOpen}>
     <CommandInput placeholder="Find a Meeting or Agent" />
     <CommandList>
       <CommandItem>Test</CommandItem>
     </CommandList>
-  </CommandDialog>
+  </CommandResponsiveDialog>
 );
