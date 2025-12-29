@@ -32,7 +32,7 @@ export const AgentsView = () => {
       />
       {items.length === 0 && (
         <InfoState
-          image="/empty.svg"
+          image="/img/empty.svg"
           title="Create your first agent"
           description="Create an agent to join your meetings. Each agent will follow your instructions and can interact with participants during the call."
         />

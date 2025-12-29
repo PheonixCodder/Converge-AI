@@ -23,6 +23,6 @@ const AgentsPage = async ({ searchParams }: AgentsPageProps) => {
       </SuspenseErrorBoundary>
     </>
   );
-};
+}
 
 export default AgentsPage;
