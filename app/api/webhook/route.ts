@@ -16,9 +16,10 @@ import OpenAI from "openai";
 import { streamChat } from "@/lib/stream-chat";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { generateAvatarUri } from "@/lib/avatar";
+import { env } from "@/lib/env";
 
 const openaiClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: env.OPENAI_API_KEY!,
 });
 
 export const verifySignatureWithSD = (body: string, signature: string) =>
@@ -96,7 +97,7 @@ export const POST = async (req: NextRequest) => {
 
     const realtimeClient = await streamVideo.video.connectOpenAi({
       call,
-      openAiApiKey: process.env.OPENAI_API_KEY!,
+      openAiApiKey: env.OPENAI_API_KEY!,
       agentUserId: existingAgent.userId,
     });
 

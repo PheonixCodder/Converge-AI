@@ -11,6 +11,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { authClient } from "@/lib/auth-client";
 
 type DashboardUserButtonMobileProps = {
   user: User;
@@ -31,7 +32,7 @@ export const DashboardUserButtonMobile = ({
         <DrawerDescription>{user.email}</DrawerDescription>
       </DrawerHeader>
       <DrawerFooter>
-        <Button variant="outline">
+        <Button onClick={() => authClient.customer.portal()} variant="outline">
           <CreditCardIcon className="size-4 text-black" />
           Billing
         </Button>

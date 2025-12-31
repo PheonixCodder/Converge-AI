@@ -64,7 +64,7 @@ export const CallLobby = ({ onJoin }: CallLobbyProps) => {
           </div>
           <VideoPreview
             DisabledVideoPreview={
-              hasPermissions ? AllowBrowserPermissions : DisabledVideoPreview
+              hasPermissions ? DisabledVideoPreview : AllowBrowserPermissions
             }
           />
           <div className="flex gap-x-2">

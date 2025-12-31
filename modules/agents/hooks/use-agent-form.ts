@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 type UseAgentFormProps = {
   initialValues?: AgentGetByIdOutput;
@@ -19,6 +20,7 @@ export const useAgentForm = ({
   initialValues,
   onSuccess,
 }: UseAgentFormProps) => {
+  const router = useRouter()
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const isEdit = !!initialValues;
@@ -29,12 +31,18 @@ export const useAgentForm = ({
         await queryClient.invalidateQueries(
           trpc.agents.getMany.queryOptions({})
         );
+        await queryClient.invalidateQueries(
+          trpc.premium.getFreeUsage.queryOptions()
+        );
 
         onSuccess?.();
         toast.success("Agent created successfully");
       },
       onError: (error) => {
         toast.error(error.message);
+        if(error.data?.code === "FORBIDDEN"){
+          router.push("/upgrade")
+        }
       },
     })
   );

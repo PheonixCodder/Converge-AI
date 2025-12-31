@@ -37,7 +37,7 @@ export const Transcript = ({ meetingId }: TranscriptProps) => {
           placeholder="Search transcript"
           value={searchQuery}
           onChange={handleSearch}
-          className="pl-7 h-9 w-[240px]"
+          className="pl-7 h-9 w-60"
         />
         <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2  size-4 text-muted-foreground" />
       </div>

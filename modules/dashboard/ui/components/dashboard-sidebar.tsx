@@ -18,6 +18,7 @@ import { BotIcon, StarIcon, VideoIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import DashboardTrial from "./dashboard-trial";
 
 const FIRST_SECTION = [
   {
@@ -114,6 +115,7 @@ export const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="text-white">
+        <DashboardTrial />
         <DashboardUserButton />
       </SidebarFooter>
     </Sidebar>

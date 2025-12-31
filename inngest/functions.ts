@@ -5,6 +5,7 @@ import { StreamTranscriptItem } from "@/modules/meetings/types";
 import { eq, inArray } from "drizzle-orm";
 import { createAgent, openai, TextMessage } from "@inngest/agent-kit";
 import JSONL from "jsonl-parse-stringify";
+import { env } from "@/lib/env";
 
 const summarizer = createAgent({
   name: "summarizer",
@@ -31,7 +32,7 @@ const summarizer = createAgent({
     `.trim(),
   model: openai({
     model: "gpt-4o",
-    apiKey: process.env.OPENAI_API_KEY!,
+    apiKey: env.OPENAI_API_KEY!,
   }),
 });
 

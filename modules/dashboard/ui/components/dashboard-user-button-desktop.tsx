@@ -10,6 +10,7 @@ import { DashboardUserButtonTrigger } from "./dashboard-user-button-trigger";
 import { CreditCardIcon } from "lucide-react";
 import { LogOutIcon } from "lucide-react";
 import { User } from "better-auth";
+import { authClient } from "@/lib/auth-client";
 
 type DashboardUserButtonDesktopProps = {
   user: User;
@@ -34,7 +35,7 @@ export const DashboardUserButtonDesktop = ({
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
-      <DropdownMenuItem className="hover:cursor-pointer flex items-center justify-between">
+      <DropdownMenuItem onClick={() => authClient.customer.portal()} className="hover:cursor-pointer flex items-center justify-between">
         Billing
         <CreditCardIcon className="size-4" />
       </DropdownMenuItem>
