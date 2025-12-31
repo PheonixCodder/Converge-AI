@@ -12,6 +12,7 @@ import {
 } from "stream-chat-react";
 import { type Channel as StreamChannel } from "stream-chat";
 import { LoadingState } from "@/components/loading-state";
+import { env } from "@/lib/env";
 
 type ChatUIProps = {
   meetingId: string;

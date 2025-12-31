@@ -13,6 +13,7 @@ import "@stream-io/video-react-sdk/dist/css/styles.css";
 import { useMutation } from "@tanstack/react-query";
 import { CallUI } from "@/modules/call/ui/components/call-ui";
 import { Loader } from "@/components/loader";
+import { env } from "@/lib/env";
 
 export type CallConnectProps = {
   meetingId: string;

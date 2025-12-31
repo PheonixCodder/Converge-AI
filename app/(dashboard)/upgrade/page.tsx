@@ -1,6 +1,6 @@
 import { SuspenseErrorBoundary } from "@/components/suspense-error-boundary";
 import { auth } from "@/lib/auth";
-import { MeetingsView } from "@/modules/meetings/ui/views/meetings-view";
+import { UpgradeView } from "@/modules/upgrade/ui/views/upgrade-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
