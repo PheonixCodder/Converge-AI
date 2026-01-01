@@ -18,12 +18,37 @@ import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { generateAvatarUri } from "@/lib/avatar";
 import { env } from "@/lib/env";
 
+/* ------------------------------------------------------------------ */
+/* Utilities */
+/* ------------------------------------------------------------------ */
+
+function extractMeetingIdFromCid(callCid: unknown): string | null {
+  if (typeof callCid !== "string") return null;
+
+  const parts = callCid.split(":");
+  if (parts.length !== 2) return null;
+
+  return parts[1];
+}
+
+/* ------------------------------------------------------------------ */
+/* OpenAI Client */
+/* ------------------------------------------------------------------ */
+
 const openaiClient = new OpenAI({
   apiKey: env.OPENAI_API_KEY!,
 });
 
+/* ------------------------------------------------------------------ */
+/* Webhook Verification */
+/* ------------------------------------------------------------------ */
+
 export const verifySignatureWithSD = (body: string, signature: string) =>
   streamVideo.verifyWebhook(body, signature);
+
+/* ------------------------------------------------------------------ */
+/* Webhook Handler */
+/* ------------------------------------------------------------------ */
 
 export const POST = async (req: NextRequest) => {
   const signature = req.headers.get("x-signature");
@@ -45,12 +70,16 @@ export const POST = async (req: NextRequest) => {
   let payload: unknown;
 
   try {
-    payload = JSON.parse(body) as Record<string, unknown>;
+    payload = JSON.parse(body);
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const eventType = (payload as Record<string, unknown>)?.type;
+
+  /* ------------------------------------------------------------------ */
+  /* Call Started */
+  /* ------------------------------------------------------------------ */
 
   if (eventType === "call.session_started") {
     const event = payload as CallSessionStartedEvent;
@@ -59,6 +88,7 @@ export const POST = async (req: NextRequest) => {
     if (!meetingId) {
       return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
     }
+
     const [existingMeeting] = await db
       .select()
       .from(meetings)
@@ -101,19 +131,32 @@ export const POST = async (req: NextRequest) => {
       agentUserId: existingAgent.userId,
     });
 
-    realtimeClient.updateSession({ instructions: existingAgent.instructions });
-  } else if (eventType === "call.session_participant_left") {
+    realtimeClient.updateSession({
+      instructions: existingAgent.instructions,
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Participant Left */
+  /* ------------------------------------------------------------------ */
+
+  else if (eventType === "call.session_participant_left") {
     const event = payload as CallSessionParticipantLeftEvent;
-    const meetingId = event.call_cid.split(":")[1];
+    const meetingId = extractMeetingIdFromCid(event.call_cid);
 
     if (!meetingId) {
-      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid call_cid" }, { status: 400 });
     }
 
     const call = streamVideo.video.call("default", meetingId);
-
     await call.end();
-  } else if (eventType === "call.session_ended") {
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Call Ended */
+  /* ------------------------------------------------------------------ */
+
+  else if (eventType === "call.session_ended") {
     const event = payload as CallSessionEndedEvent;
     const meetingId = event.call.custom?.meetingId;
 
@@ -123,15 +166,30 @@ export const POST = async (req: NextRequest) => {
 
     await db
       .update(meetings)
-      .set({ status: "processing", endedAt: new Date() })
+      .set({
+        status: "processing",
+        endedAt: new Date(),
+      })
       .where(and(eq(meetings.id, meetingId), eq(meetings.status, "active")));
-  } else if (eventType === "call.transcription_ready") {
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Transcription Ready */
+  /* ------------------------------------------------------------------ */
+
+  else if (eventType === "call.transcription_ready") {
     const event = payload as CallTranscriptionReadyEvent;
-    const meetingId = event.call_cid.split(":")[1];
+    const meetingId = extractMeetingIdFromCid(event.call_cid);
+
+    if (!meetingId) {
+      return NextResponse.json({ error: "Invalid call_cid" }, { status: 400 });
+    }
 
     const [updatedMeeting] = await db
       .update(meetings)
-      .set({ transcriptUrl: event.call_transcription.url })
+      .set({
+        transcriptUrl: event.call_transcription.url,
+      })
       .where(eq(meetings.id, meetingId))
       .returning();
 
@@ -146,9 +204,19 @@ export const POST = async (req: NextRequest) => {
         transcriptUrl: updatedMeeting.transcriptUrl,
       },
     });
-  } else if (eventType === "call.recording_ready") {
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Recording Ready */
+  /* ------------------------------------------------------------------ */
+
+  else if (eventType === "call.recording_ready") {
     const event = payload as CallRecordingReadyEvent;
-    const meetingId = event.call_cid.split(":")[1];
+    const meetingId = extractMeetingIdFromCid(event.call_cid);
+
+    if (!meetingId) {
+      return NextResponse.json({ error: "Invalid call_cid" }, { status: 400 });
+    }
 
     await db
       .update(meetings)
@@ -158,6 +226,10 @@ export const POST = async (req: NextRequest) => {
       .where(eq(meetings.id, meetingId));
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Post-Meeting Chat */
+  /* ------------------------------------------------------------------ */
+
   if (eventType === "message.new") {
     const event = payload as MessageNewEvent;
 
@@ -165,9 +237,9 @@ export const POST = async (req: NextRequest) => {
     const channelId = event.channel_id;
     const text = event.message?.text;
 
-    if (!userId || !channelId || !text) {
+    if (!userId || !channelId || typeof text !== "string") {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Invalid message payload" },
         { status: 400 }
       );
     }
@@ -192,49 +264,38 @@ export const POST = async (req: NextRequest) => {
 
     if (userId === existingAgent.userId) {
       const instructions = `
-      You are an AI assistant helping the user revisit a recently completed meeting.
-      Below is a summary of the meeting, generated from the transcript:
-      
-      ${existingMeeting.summary}
-      
-      The following are your original instructions from the live meeting assistant. Please continue to follow these behavioral guidelines as you assist the user:
-      
-      ${existingAgent.instructions}
-      
-      The user may ask questions about the meeting, request clarifications, or ask for follow-up actions.
-      Always base your responses on the meeting summary above.
-      
-      You also have access to the recent conversation history between you and the user. Use the context of previous messages to provide relevant, coherent, and helpful responses. If the user's question refers to something discussed earlier, make sure to take that into account and maintain continuity in the conversation.
-      
-      If the summary does not contain enough information to answer a question, politely let the user know.
-      
-      Be concise, helpful, and focus on providing accurate information from the meeting and the ongoing conversation.
-      `;
+You are an AI assistant helping the user revisit a recently completed meeting.
+
+${existingMeeting.summary}
+
+Original assistant instructions:
+${existingAgent.instructions}
+      `.trim();
 
       const channel = streamChat.channel("messaging", channelId);
       await channel.watch();
 
       const previousMessages = channel.state.messages
         .slice(-5)
-        .filter((msg) => msg.text && msg.text.trim() !== "")
+        .filter((msg) => typeof msg.text === "string" && msg.text.trim() !== "")
         .map<ChatCompletionMessageParam>((message) => ({
           role: message.user?.id === existingAgent.id ? "assistant" : "user",
-          content: message.text || "",
+          content: message.text!,
         }));
 
-      const GPTResponse = await openaiClient.chat.completions.create({
+      const response = await openaiClient.chat.completions.create({
+        model: "gpt-4o",
         messages: [
           { role: "system", content: instructions },
           ...previousMessages,
           { role: "user", content: text },
         ],
-        model: "gpt-4o",
       });
 
-      const GPTResponseText = GPTResponse.choices[0].message.content;
-      if (!GPTResponseText) {
+      const reply = response.choices[0]?.message?.content;
+      if (!reply) {
         return NextResponse.json(
-          { error: "No response from GPT" },
+          { error: "No response from AI" },
           { status: 500 }
         );
       }
@@ -244,18 +305,18 @@ export const POST = async (req: NextRequest) => {
         variant: "botttsNeutral",
       });
 
-      streamChat.upsertUser({
+      await streamChat.upsertUser({
         id: existingAgent.id,
         name: existingAgent.name,
         image: avatarUrl,
       });
 
-      channel.sendMessage({
-        text: GPTResponseText,
+      await channel.sendMessage({
+        text: reply,
         user: {
           id: existingAgent.id,
-          image: avatarUrl,
           name: existingAgent.name,
+          image: avatarUrl,
         },
       });
     }
