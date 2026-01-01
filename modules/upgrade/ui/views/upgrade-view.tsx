@@ -22,7 +22,7 @@ export const UpgradeView = () => {
                 </h5>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {products.map((product) => {
-                        const isCurrentProduct = subscription!.id === product.id
+                        const isCurrentProduct = subscription?.id === product.id
                         const isPremium = !!subscription
 
                         let buttonText = "Upgrade"

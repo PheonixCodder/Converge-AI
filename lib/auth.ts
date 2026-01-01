@@ -14,7 +14,8 @@ export const auth = betterAuth({
       use: [
         checkout({
           authenticatedUsersOnly: true,
-          successUrl: "upgrade"
+          successUrl: "upgrade",
+          redirect: false
         }),
         portal(),
       ]

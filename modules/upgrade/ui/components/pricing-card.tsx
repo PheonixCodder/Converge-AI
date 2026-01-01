@@ -99,7 +99,7 @@ export const PricingCard = ({variant, badge, price, features, title, description
                 <Separator className='opacity-10 text-[#5D6B68]' />
             </div>
             <Button className='w-full' size={"lg"} variant={variant === "highlighted" ? "default" : "outline"} onClick={onClick}>{buttonText}</Button>
-            <div className={cn("flex flex-col gap-y-2.5", pricingCardSecondaryTextVariants({variant}))}>
+            <div className={cn("flex flex-col gap-y-2.5 mt-5", pricingCardSecondaryTextVariants({variant}))}>
                 {features.map((feature, index) => (
                     <li key={index} className='flex items-center gap-x-2.5'>
                         <CircleCheckIcon className={cn(pricingCardIconVariants({variant}))} />
